@@ -1,0 +1,15 @@
+{
+  "name": "@ajiu9/carousel",
+  "version": "1.0.1",
+  "description": "A carousel, a group of carousels.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ajiu9",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ajiu9/carousel.git"
+  }
+}
