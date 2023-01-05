@@ -1,10 +1,10 @@
 const path = require('path');
 module.exports = {
-    entry: "./animation-demo.js",
+    entry: "./main.js",
     mode: 'development',
-    // output: {
-    //     path: path.join(__dirname, './dist'),
-    // },
+    output: {
+        path: path.join(__dirname, './dist'),
+    },
     devServer: {
         static: {
             directory: path.join(__dirname, '/'),

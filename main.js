@@ -15,13 +15,23 @@ class Carousel extends Component {
                 itemEl.appendChild(h)
                 element.appendChild(itemEl);
         }
+        let currentIndex = 0;
+        setInterval(() => {
+            const children = this.root.children;
+            let nextIndex = (currentIndex + 1) % children.length;
+            let current = children[currentIndex];
+            let next = children[nextIndex];
 
-        // setInterval(() => {
-        //     const children = this.root.children;
-        //     for (const child of children) {
-        //         child.style.transform = `translateX(${+100}%)`
-        //     }
-        // })
+            next.style.transform = `translateX(${100 - nextIndex * 100}%)`;
+            next.style.transition = 'none';
+
+            setTimeout(() => {
+                next.style.transition = '';
+                current.style.transform = `translateX(${-100 - currentIndex * 100}%)`;
+                next.style.transform = `translateX(${- nextIndex * 100}%)`;
+                currentIndex = nextIndex;
+            }, 16);
+        }, 3000)
         console.log(element)
         return element;
     }
