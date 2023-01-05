@@ -1,8 +1,3 @@
-function dispatch(type, properties) {
-    
-}
-
-// new Listener(new Recognizer(new Dispatcher()))
 export class Listener {
     constructor(element, recognizer) {
         let isListeningMouse = false;
@@ -41,12 +36,19 @@ export class Listener {
                 const context = contexts.get(`mouse${1 << event.button}`);
                 recognizer.end(event, context);
                 contexts.delete(`mouse${1 << event.button}`);
-                element.removeEventListener("mousemove", mouseMove);
-                element.removeEventListener("mouseup", mouseup);
+                if (event.buttons === 0) {
+                    element.removeEventListener("mousemove", mouseMove);
+                    element.removeEventListener("mouseup", mouseup);
+                    isListeningMouse = false;
+                }
+            }
+
+            if (!isListeningMouse) {
+                element.addEventListener("mousemove", mouseMove);
+                element.addEventListener("mouseup", mouseup);
+                isListeningMouse = true;
             }
         
-            element.addEventListener("mousemove", mouseMove);
-            element.addEventListener("mouseup", mouseup);
         });
 
         // touchstart touchmove 在一个元素上
@@ -114,7 +116,7 @@ export class Recognizer {
             context.isPan = true;
             context.isTap = false;
             context.isPress = false;
-            context.isVertical = Math.abs(dx) - Math.abs(dy);
+            context.isVertical = Math.abs(dx) - Math.abs(dy) >= 0;
             clearTimeout(context.handler);
             this.dispatcher.dispatch('panStart', {
                 startX: context.startX,
@@ -150,7 +152,6 @@ export class Recognizer {
                 startY: context.startY,
                 clientX: point.clientX,
                 clientY: point.clientY,
-                isVertical: context.isVertical,
             });
             clearTimeout(context.handler);
         }
