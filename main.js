@@ -21,12 +21,27 @@ class Carousel extends Component {
         }
 
         enableGesture(this.root);
+        const timeLine = new TimeLine();
+        timeLine.start();
 
         let position = 0;
         let children = this.root.children;
 
+        let handler = null;
+        let nextPicture;
+        let t = 0;
+        let ax = 0;
+
+        this.root.addEventListener('start', () => {
+            timeLine.pause();
+            clearInterval(handler);
+
+            let progress = (Date.now() - t) / 1500;
+            ax = ease(progress) * 500 - 500;
+        });
+
         this.root.addEventListener('pan', event => {
-            let dx = event.clientX - event.startX;
+            let dx = event.clientX - event.startX - ax;
 
             // 计算当前位置
             // 这种计算能保证位置正确，保留dx符号正确
@@ -45,37 +60,70 @@ class Carousel extends Component {
         });
 
         this.root.addEventListener('end', event => {
-            let dx = event.clientX - event.startX;
-            position = position -  Math.round(dx / 500);
+            timeLine.reset();
+            timeLine.start();
+            handler = setInterval(nextPicture, 3000);
 
-            for (const offset of [0, -Math.sign(Math.round(dx / 500) - dx + 250 * Math.sign(dx))]) {
-                let pos = position + offset;
+            let dx = event.clientX - event.startX - ax;
+            let current = position - ((dx - dx % 500) / 500);
+
+            let direction = Math.round((dx % 500) / 500);
+
+            for (const offset of [-1, 0, 1]) {
+                let pos = current + offset;
                 // pos need >= 0
                 pos = (pos % children.length + children.length) % children.length;
 
-                children[pos].style.transition = '';
-                children[pos].style.transform = `translateX(${ - pos * 500 + offset * 500}px)`;
+                children[pos].style.transition = 'none';
+                timeLine.add(
+                    new Animation(children[pos].style,
+                    'transform',
+                    - pos * 500 + offset * 500 + dx % 500,
+                    - pos * 500 + offset * 500 + direction * 500,
+                    1500,
+                    0,
+                    ease,
+                    v => `translateX(${v}px)`)
+                );
             }
+
+            position = position - ((dx - dx % 500) / 500) - direction;
+            position = (position % children.length + children.length) % children.length;
+
         });
 
-        // setInterval(() => {
-        //     const children = this.root.children;
-        //     let nextIndex = (position + 1) % children.length;
-        //     let current = children[position];
-        //     let next = children[nextIndex];
 
-        //     next.style.transform = `translateX(${100 - nextIndex * 100}%)`;
-        //     next.style.transition = 'none';
+        nextPicture = () => {
+            let nextIndex = (position + 1) % children.length;
+            let current = children[position];
+            let next = children[nextIndex];
 
-        //     setTimeout(() => {
-        //         next.style.transition = '';
-        //         current.style.transform = `translateX(${-100 - position * 100}%)`;
-        //         next.style.transform = `translateX(${- nextIndex * 100}%)`;
-        //         position = nextIndex;
-        //     }, 16);
-        // }, 3000)
+            t = Date.now();
 
-        // calculate current index
+            timeLine.add(
+                new Animation(current.style,
+                'transform',
+                -position * 500,
+                -500 - position * 500,
+                1500,
+                0,
+                ease,
+                v => `translateX(${v}px)`)
+            );
+            timeLine.add(
+                new Animation(next.style,
+                'transform',
+                500 - nextIndex * 500,
+                - nextIndex * 500,
+                1500,
+                0,
+                ease,
+                v => `translateX(${v}px)`)
+            );
+            position = nextIndex;
+        }
+
+        handler = setInterval(nextPicture, 3000)
 
 
 
