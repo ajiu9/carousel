@@ -3,6 +3,9 @@ export class Listener {
         let isListeningMouse = false;
 
         const contexts = new Map();
+        // PC mousemove and mouseup event
+        // Event listen in document.documentElement
+        const el = document.documentElement;
 
         element.addEventListener("mousedown", event => {
             const context = Object.create(null);
@@ -12,8 +15,8 @@ export class Listener {
             recognizer.start(event, context);
         
             const mouseMove = event => {
-                // mousemove中event.button 不一定有
-                // 取event.buttons 0b00001
+                // mousemove中event.button may not exist
+                // get event.buttons 0b00001
                 let button = 1;
                 while (button <= event.buttons) {
                     if (button & event.buttons) {
@@ -37,21 +40,21 @@ export class Listener {
                 recognizer.end(event, context);
                 contexts.delete(`mouse${1 << event.button}`);
                 if (event.buttons === 0) {
-                    element.removeEventListener("mousemove", mouseMove);
-                    element.removeEventListener("mouseup", mouseup);
+                    el.removeEventListener("mousemove", mouseMove);
+                    el.removeEventListener("mouseup", mouseup);
                     isListeningMouse = false;
                 }
             }
 
             if (!isListeningMouse) {
-                element.addEventListener("mousemove", mouseMove);
-                element.addEventListener("mouseup", mouseup);
+                el.addEventListener("mousemove", mouseMove);
+                el.addEventListener("mouseup", mouseup);
                 isListeningMouse = true;
             }
         
         });
 
-        // touchstart touchmove 在一个元素上
+        // touchstart touchmove on an element
         element.addEventListener("touchstart", event => {
             for (const touch of event.changedTouches) {
                 const context = Object.create(null);
