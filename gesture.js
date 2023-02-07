@@ -66,6 +66,9 @@ export class Listener {
         element.addEventListener("touchmove", event => {
             for (const touch of event.changedTouches) {
                 const context = contexts.get(touch.identifier);
+                // prevent event for example drop down event
+                // item can interrupt touchmove
+                event.preventDefault();
                 recognizer.move(touch, context);
             }
         });
