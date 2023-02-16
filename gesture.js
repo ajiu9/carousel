@@ -208,6 +208,7 @@ export class Recognizer {
             clientY: point.clientY,
             isVertical: context.isVertical,
             isFlick: context.isFlick,
+            isPan: context.isPan,
             velocity: v,
         });
     }

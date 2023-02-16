@@ -84,6 +84,5 @@ export class Animation {
         let range = this.endValue - this.startValue;
         let progress = this.timingFunction(time / this.duration);
         this.object[this.property] = this.template(this.startValue + range * progress);
-        console.log(this.object[this.property])
     }
 }

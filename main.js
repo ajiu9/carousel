@@ -9,6 +9,9 @@ class Carousel extends Component {
         super();
     }
     render() {
+        this.delay = 500;
+        this.timer = 3000;
+        this.width = 500;
         this.root = document.createElement("div");
         this.root.classList.add("carousel");
         for (const item of [1,2,3,4]) {
@@ -35,9 +38,10 @@ class Carousel extends Component {
         this.root.addEventListener('start', () => {
             timeLine.pause();
             clearInterval(handler);
-
-            let progress = (Date.now() - t) / 1500;
-            ax = ease(progress) * 500 - 500;
+            if (t) {
+                let progress = (Date.now() - t) / this.delay;
+                ax = ease(progress) * this.width - this.width;
+            }
         });
 
         this.root.addEventListener('pan', event => {
@@ -48,46 +52,57 @@ class Carousel extends Component {
             // 例如 dx = 300, 300 - 300 => 0 / 500 => 0;
             // dx = 600, 600 - 600 % 500 => 500 / 500 => 1;
             // dx = -600, -600 + 600 % 500 / 500 => -1;
-            let current = position - (dx - dx % 500) / 500;
+            let current = position - (dx - dx % this.width) / this.width;
 
             for (const offset of [-1, 0 ,1]) {
                 let pos = current + offset;
                 pos = (pos % children.length + children.length) % children.length;
 
                 children[pos].style.transition = 'none';
-                children[pos].style.transform = `translateX(${ - pos * 500 + offset * 500 + dx % 500 }px)`;
+                children[pos].style.transform = `translateX(${ - pos * this.width + offset * this.width + dx % this.width }px)`;
             }
         });
 
         this.root.addEventListener('end', event => {
             timeLine.reset();
             timeLine.start();
-            handler = setInterval(nextPicture, 3000);
-
+            handler = setInterval(nextPicture, this.timer);
+            if (!event.isPan) {
+                t = 0;
+                ax = 0;
+            }
             let dx = event.clientX - event.startX - ax;
-            let current = position - ((dx - dx % 500) / 500);
+            let current = position - ((dx - dx % this.width) / this.width);
 
-            let direction = Math.round((dx % 500) / 500);
+            let direction = Math.round((dx % this.width) / this.width);
+
+            if (event.isFlick) {
+                if (event.velocity > 0) {
+                    direction = Math.floor((dx % this.width) / this.width);
+                } else {
+                    direction = Math.ceil((dx % this.width) / this.width);
+                }
+            }
 
             for (const offset of [-1, 0, 1]) {
                 let pos = current + offset;
                 // pos need >= 0
                 pos = (pos % children.length + children.length) % children.length;
 
-                children[pos].style.transition = 'none';
+                children[pos].style.transition = '';
                 timeLine.add(
                     new Animation(children[pos].style,
                     'transform',
-                    - pos * 500 + offset * 500 + dx % 500,
-                    - pos * 500 + offset * 500 + direction * 500,
-                    1500,
+                    - pos * this.width + offset * this.width + dx % this.width,
+                    - pos * this.width + offset * this.width + direction * this.width,
+                    this.delay,
                     0,
                     ease,
                     v => `translateX(${v}px)`)
                 );
             }
 
-            position = position - ((dx - dx % 500) / 500) - direction;
+            position = position - ((dx - dx % this.width) / this.width) - direction;
             position = (position % children.length + children.length) % children.length;
 
         });
@@ -103,9 +118,9 @@ class Carousel extends Component {
             timeLine.add(
                 new Animation(current.style,
                 'transform',
-                -position * 500,
-                -500 - position * 500,
-                1500,
+                -position * this.width,
+                -this.width - position * this.width,
+                this.delay,
                 0,
                 ease,
                 v => `translateX(${v}px)`)
@@ -113,9 +128,9 @@ class Carousel extends Component {
             timeLine.add(
                 new Animation(next.style,
                 'transform',
-                500 - nextIndex * 500,
-                - nextIndex * 500,
-                1500,
+                this.width - nextIndex * this.width,
+                - nextIndex * this.width,
+                this.delay,
                 0,
                 ease,
                 v => `translateX(${v}px)`)
@@ -123,7 +138,7 @@ class Carousel extends Component {
             position = nextIndex;
         }
 
-        handler = setInterval(nextPicture, 3000)
+        handler = setInterval(nextPicture, this.timer)
 
 
 
